@@ -1,1 +1,3 @@
 # DockerLibrary
+
+docker run --name fluent1 -d -p 24224:24224 pospome/fluent-nginx-log:1.0
