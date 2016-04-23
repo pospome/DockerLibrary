@@ -8,4 +8,6 @@ RUN yum install -y mongodb-org
 
 COPY mongod.conf /etc/mongod.conf
 
+EXPOSE 27017
+
 ENTRYPOINT ["mongod", "--config", "/etc/mongod.conf"]
