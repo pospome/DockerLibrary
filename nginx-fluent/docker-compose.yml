@@ -1,0 +1,22 @@
+# fluentがnginxのアクセスログを読んで別ファイルに書き出す
+# docker-compose up -d
+
+nginx1:
+    image: pospome/nginx-html:1.0
+    ports: 
+        - "80:80"
+    volumes_from: 
+        - dvc1
+
+fluent1:
+    image: pospome/fluent-nginx-log:1.0
+    ports: 
+        - "24224:24224"
+    volumes_from: 
+        - dvc1
+
+dvc1:
+    image: busybox
+    volumes: 
+        - /var/log/nginx/
+    command: [/bin/sh]
