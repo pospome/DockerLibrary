@@ -9,4 +9,6 @@ RUN rpm --import https://packages.treasuredata.com/GPG-KEY-td-agent && \
 
 ONBUILD COPY td-agent.conf /etc/td-agent/td-agent.conf
 
+EXPOSE 24224
+
 ENTRYPOINT ["/usr/sbin/td-agent", "-c", "/etc/td-agent/td-agent.conf"]
