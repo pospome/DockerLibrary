@@ -4,8 +4,9 @@ MAINTAINER pospome
 
 COPY td.repo.txt /etc/yum.repos.d/td.repo
 
-RUN rpm --import https://packages.treasuredata.com/GPG-KEY-td-agent && \
-    yum install -y td-agent
+RUN yum -y update && \
+    rpm --import https://packages.treasuredata.com/GPG-KEY-td-agent && \
+    yum -y install td-agent
 
 ONBUILD COPY td-agent.conf /etc/td-agent/td-agent.conf
 
