@@ -1,6 +1,6 @@
 # DockerLibrary
   
-docker run --name r4 -it -v /vagrant/working:/root/working -p 3000:3000 pospome/ruby-for-development:1.0  
+docker run --name rails -it -v /vagrant/working:/root/working -p 3000:3000 pospome/ruby-for-development:1.0  
   
   
 ・開発用なのでrailsプロジェクトはホスト側で用意しておき、  
@@ -12,4 +12,7 @@ docker run --name r4 -it -v /vagrant/working:/root/working -p 3000:3000 pospome/
 ・いくつかのgemはインストールされているが、  
 　bundle install は必要。  
   
-・bundle exec unicorn -c ./config/unicorn.rb で起動する。  
+・docker exec -it rails /bin/bash --login でコンテナにログインして  
+　$ bundle install  
+　$ bundle exec unicorn -c ./config/unicorn.rb  
+　で起動する。  
