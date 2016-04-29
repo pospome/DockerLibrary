@@ -4,7 +4,8 @@ MAINTAINER pospome
 
 COPY mongodb-org.repo /etc/yum.repos.d/mongodb-org.repo
 
-RUN yum install -y mongodb-org
+RUN yum -y update && \
+    yum install -y mongodb-org
 
 COPY mongod.conf /etc/mongod.conf
 
