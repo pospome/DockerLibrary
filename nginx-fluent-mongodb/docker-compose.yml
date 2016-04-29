@@ -8,6 +8,8 @@ nginx:
         - "80:80"
     volumes_from: 
         - dvc
+    volumes:
+        - /etc/localtime:/etc/localtime:ro
 
 fluent:
     container_name: fluent
@@ -18,6 +20,8 @@ fluent:
         - "24224:24224"
     volumes_from: 
         - dvc
+    volumes:
+        - /etc/localtime:/etc/localtime:ro
 
 mongodb:
     container_name: mongodb
@@ -26,6 +30,8 @@ mongodb:
         - "27017:27017"
     volumes_from: 
         - dvc
+    volumes:
+        - /etc/localtime:/etc/localtime:ro
 
 dvc:
     container_name: dvc

@@ -8,6 +8,8 @@ nginx:
         - "80:80"
     volumes_from: 
         - dvc
+    volumes:
+        - /etc/localtime:/etc/localtime:ro
 
 rails:
     container_name: rails
@@ -16,6 +18,7 @@ rails:
         - "3000:3000"
     volumes:
         - /vagrant/working:/root/working
+        - /etc/localtime:/etc/localtime:ro
     volumes_from: 
         - dvc
     tty: true
