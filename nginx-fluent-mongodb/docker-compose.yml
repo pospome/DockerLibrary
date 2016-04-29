@@ -1,4 +1,4 @@
-# fluentがnginxのアクセスログを読んで別ファイルに書き出す
+# fluentがnginxのアクセスログを読んでMongoDBにインポートする
 # docker-compose up -d
 
 nginx:

@@ -1,0 +1,28 @@
+# nginx-proxy --> rails
+# docker-compose up -d
+
+nginx:
+    container_name: nginx
+    image: pospome/nginx-proxy:1.0
+    ports: 
+        - "80:80"
+    volumes_from: 
+        - dvc
+
+rails:
+    container_name: rails
+    image: pospome/ruby-for-development:1.0
+    ports: 
+        - "3000:3000"
+    volumes:
+        - /vagrant/working:/root/working
+    volumes_from: 
+        - dvc
+    tty: true
+
+dvc:
+    container_name: dvc
+    image: busybox
+    volumes: 
+        - /var/run/
+    command: [/bin/sh]
