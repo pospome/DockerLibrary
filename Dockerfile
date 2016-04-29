@@ -16,4 +16,4 @@ RUN yum -y update && \
 
 EXPOSE 3000
 
-ENTRYPOINT ["/usr/bin/bash"]
+ENTRYPOINT ["/bin/bash", "--login"]
