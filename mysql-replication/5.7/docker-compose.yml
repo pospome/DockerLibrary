@@ -1,0 +1,17 @@
+
+mysql-master:
+    container_name: master
+    image: mysql:5.7
+    ports: 
+        - "3306:3306"
+    volumes_from: 
+        - dvc
+    environment: 
+        - MYSQL_ROOT_PASSWORD: pass
+
+dvc:
+    container_name: dvc
+    image: busybox
+    volumes: 
+        - /root/share
+    command: [/bin/sh]
