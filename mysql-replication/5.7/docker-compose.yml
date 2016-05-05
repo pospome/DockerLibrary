@@ -11,5 +11,5 @@ mysql-slave:
     links:
         - mysql-master
     environment:
-        MYSQL_ROOT_PASSWORD: slave
         REPLICATION_USER_PASSWORD: replication
+        MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
