@@ -1,0 +1,83 @@
+[mysqld]
+
+########################
+# 共通設定
+########################
+
+# サーバをユニークに識別する番号
+# 指定しないとレプリケーションできなくなる。
+server-id = 1
+
+# レプリケーションにおけるサーバ名
+# サーバをユニークに識別するには server-id を利用するので設定しなくてもいいし、
+# 全てのサーバを同じ名前にしてもいいが、レプリケーション関連の操作で利用されるので、
+# サーバ毎にユニークなものを設定した方が良い。
+report-host = master
+# report-host = slave1
+# report-host = slave2
+
+# gtidを利用する
+gtid-mode = ON
+enforce-gtid-consistency
+
+# マスターステータスおよび接続情報のログを保存する場所
+# TABLE or FILE が選択できる。
+master_info_repository = TABLE
+
+# スレーブのリレーログ内での位置が FILE (relay-log.info) または TABLE (mysql.slave_relay_log_info) のどちらに書き込まれるか
+# TABLE or FILE が選択できる。
+relay_log_info_repository = TABLE
+
+# slaveにbinlogを出力するかどうか。
+# slaveが他のサーバに対してmasterになっている場合に利用する。
+# master -> slave1（実はこれにslaveがぶら下がっている） -> slave2
+# log-slave-updates
+
+
+
+#################
+# 準同期レプリケーションのmaster設定
+#################
+
+# 準同期用のプラグインをインストールする。
+plugin-load=rpl_semi_sync_master=semisync_master.so
+
+# 準同期レプリケーションにする
+# master側の設定
+rpl_semi_sync_master_enabled=1
+
+# 設定した数のスレーブが応答すれば同期したとみなす。
+# デフォルトでは1台になっている。
+rpl_semi_sync_master_wait_for_slave_count = 1
+
+# 準同期レプリケーションにおけるmasterからslaveへのタイムアウト設定
+# 設定した秒数以内に応答がなければタイムアウトになる
+rpl_semi_sync_master_timeout=10
+
+# slaveへの接続が切断されていてもタイムアウトまで待つかどうか。
+# ONの場合は切断されていても待つ。
+# OFFの場合は待たずにタイムアウトとして処理する。
+# デフォルトでON。
+# rpl_semi_sync_master_wait_no_slave
+
+# AFTER_SYNC にすると、「LossLess準同期レプリケーション」という設定になる。
+# 従来の準同期はmasterのコミットをバイナリログとDBに書き込んでいたが、
+# バイナリログがslaveに届かなかった場合、masterにのみコミットが反映されていて、slaveには反映されていない状態が考えられる。
+# それを防ぐためにslaveからの応答があってからDBに書き込むようにしたのがLossLessという設定。
+# デフォルトでAFTER_SYNCになっているので設定は不要。
+# rpl_semi_sync_master_wait_point
+
+
+
+#################
+# 準同期レプリケーションのslave設定
+#################
+
+# 準同期用のプラグインをインストールする。
+# plugin-load=rpl_semi_sync_slave=semisync_slave.so
+
+# 準同期レプリケーションにする
+# slave側の設定
+# rpl_semi_sync_slave_enabled=1
+
+
