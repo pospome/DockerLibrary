@@ -1,0 +1,384 @@
+[mysqld]
+#########################################
+## 可変パラメータ
+###########################################
+
+# トランザクションの分離レベル
+# デフォルトで REPEATABLE-READ
+transaction-isolation = REPEATABLE-READ
+
+# 最大接続数
+# 過去の最大接続数は以下のコマンドで確認できる。
+# mysqladmin -u root extended-status | grep -E 'Max|Threads'
+max_connections = 100
+
+# openされたテーブルインスタンスのキャッシュ。
+# 適正値 = max_connections x 1つのトランザクションで使用するテーブルの平均数
+table_open_cache = 400
+
+# テーブル定義のキャッシュ
+# MySQLの総テーブル数 + α を設定するといい。
+# あまり大きいとメモリを食うので適正値にしておくこと。
+# 400以下にすると Warning が出る。
+table_definition_cache = 400
+
+# ソート処理に利用されるメモリ
+# セッションごとに割り当てられるので大きすぎないように注意する。
+# サイズが大きすぎると割り当て自体がオーバーヘッドになってしまう。
+# とりあえず 1MB にしておいて、必要な場合はセッションで設定するのがいい。
+sort_buffer_size = 1M
+
+# クライアントからの接続を使いまわすかどうか
+# 使いまわすと接続生成コストがなくなる。
+# max_connections と同じくらいは設定しておいた方がいいかも。
+# 運用が始まったらスレッドの状態を以下で確認する。
+# SHOW STATUS LIKE '%Threads_%';
+# とりあえず Max_used_connections よりは大きくする。
+# さらに、Threads_created / Connections = 0.01 であれば、thread_cache_size を増やす。
+thread_cache_size = 100
+
+# クエリキャッシュのサイズ
+# query_cache_size= 16M
+
+# クエリキャッシュの動作タイプ。
+# 0=OFF, 1=ON, 2=DEMAND となる。
+# DEMANDはSQLで「SQL_CACHE」が指定された時にキャッシュする。
+# 更新が多い（キャッシュヒット率が低い）場合はDEMANDを指定して、更新がないデータにのみクエリキャッシュを使う。
+# query_cache_type = 1
+
+innodb_data_home_dir = /var/lib/mysql
+innodb_log_group_home_dir = /var/lib/mysql
+
+# OSが利用するメモリを除いた70~80%が適正値だが、
+# 実際には指定したサイズの5~10%多く割り当てられてしまうので、
+# 65 ~ 70%がいいと思う。
+innodb_buffer_pool_size = 128M
+
+# innodb_buffer_pool_sizeの25%を指定するといい。
+innodb_log_file_size = 32M
+
+# 同時実行できるスレッド数。
+# CPUのコア数 or その2倍が適正値だが、
+# システムによって適正値が変わるので、トライ＆エラーで最適な値を探す必要がある。
+innodb_thread_concurrency = 2
+
+# 指定した日数が経過するとバイナリログを削除する。
+# 削除タイミングはMySQLサーバ起動時もしくはログをローテートするときに限られるので、
+# 日数が経過したからといって即座にログファイが削除されるとは限りません。
+expire_logs_days = 3
+
+# バイナリログを指定したステートメント数で書きだす。
+# 1に設定するとパフォーマンスは落ちるが、完全同期なので安全。
+# 0に設定すると書き出さないので、パフォーマンスは上がるが、
+# クラッシュした場合にslaveにバイナリログが届いていなくてリカバリできなくなる可能性がある。
+# ただし、準同期レプリケーションを利用するとスレーブにバイナリログが届いていることが保証されるので、
+# 準同期であれば 0 を設定してもいいかもしれない。
+sync_binlog = 1
+
+# general_logとslow_query_logの出力先を指定する。
+# FILE -> general_log_file で指定したファイルへログを書き出す。
+# TALBLE -> mysql.general_logテーブルへログが出力される。
+log_output = FILE
+
+# スロークエリログを有効にする。
+slow_query_log
+
+# 何秒以上の処理時間でスロークエリログに書きだすか。
+# 0.1のように小数点も指定できる。
+# 0にすると全クエリを出力する。
+long_query_time = 1
+
+# インデックスを使っていないクエリをスロークエリログに出力する。
+log_queries_not_using_indexes
+
+# DNSによるIPからホスト名の逆引きをスキップする。
+# つまり、IPによる指定しかできなくなる。
+# localhost も使えなくなるが、/etc/hosts にIPとホスト名のヒモ付を書いておくことで解決できるので、
+# localhost であればデフォルトで解決できるはず。
+# skip-name-resolve
+
+# IPへの名前解決にキャッシュを利用するかどうか。
+# 指定すると接続ごとにDNSに問い合わせる。
+# skip-host-cache
+
+# データの2重書き込みを無効にするかどうか。
+# スレーブの場合はクラッシュしても問題ないので無効にしてもいい。
+# skip-innodb_doublewrite
+
+# コミット時のデータをディスクに書き込む方法の設定
+# スレーブの場合はクラッシュしてもいいのであれば、0を設定するとパフォーマンスが上がる。
+# 0 ... 1秒に1回バッファに書き込んで、ディスクへの書き込みも1秒に1回。クラッシュした場合に1秒間のデータが失われる可能性がある。
+# 1 ... コミット毎にバッファに書き込んで、ディスクにも書き込む。デフォルト設定。
+# 2 ... コミット毎にバッファに書き込んで、ディスクへの書き込みは1秒に1回。クラッシュした場合に1秒間のデータが失われる可能性がある。
+# innodb_flush_log_at_trx_commit = 0
+
+
+#########################################
+# 基本的に不変なパラメータ
+#########################################
+
+user=mysql
+pid-file = /var/run/mysqld/mysqld.pid
+port        = 3306
+
+# debian
+socket = /var/run/mysqld/mysqld.sock
+
+# centos
+#socket      = /var/lib/mysql/mysql.sock
+
+datadir = /var/lib/mysql
+basedir = /usr
+tmpdir = /tmp
+lc-messages-dir = /usr/share/mysql
+explicit_defaults_for_timestamp
+
+# デフォルトでlogのtimestampがUTCなのでsystem側と同じにする。
+log-timestamps= system
+
+# innodb_buffer_pool_dump_at_shutdown
+#     mysqlが正常停止した時にテキストファイルにInnoDBの内容を出力するかどうか。
+#     出力するとウォームアップが可能になる。
+#
+# innodb_buffer_pool_dump_pct
+#     出力するInnoDBの割合。デフォルトでは25%になっている。
+#
+# innodb_buffer_pool_load_at_startup
+#     mysqlが起動した時に innodb_buffer_pool_dump_at_shutdown で出力したファイルを読み込むかどうか。
+#     ウォームアップには時間がかかるので、OFFにしておき、
+#     必要であれば手動で SET GLOBAL innodb_buffer_pool_load_now= 1 を実行する。
+innodb_buffer_pool_dump_at_shutdown = 1
+#innodb_buffer_pool_dump_pct 25
+innodb_buffer_pool_load_at_startup = 0
+
+# Innodbインデックスを3072バイトまで許容する設定
+# デフォルトで有効になっている。
+# innodb_large_prefix
+
+# パスワードの有効期限
+# 5.7.11 以上であればデフォルトで 0 になるが、一応設定
+default_password_lifetime = 0
+
+log-bin=mysql-bin
+
+# 5.7 から statement がデフォルトになった。
+# それに伴い、innodb_autoinc_lock_mode もデフォルトが 2 になっている。
+# binlog_format=mixed
+
+skip-character-set-client-handshake
+character-set-server = utf8
+collation-server = utf8_general_ci
+init-connect = SET NAMES utf8
+
+# MySQLが同時に開けるファイル数
+# MySQLが実行中に自動調整してくれるので設定不要
+# 以下の3パターンで一番大きい値を設定する
+# 1.table_open_cache*2 + max_connections + 10 は必要になる。
+# 2.max_connections * 5
+# 3.open_files_limit
+# open_files_limit = 1000
+
+# ローカル以外からのアクセスを禁止する
+# OFFにしておくといい。
+# skip-networking
+
+# MyISAMでのみ使用
+# システムロックを使わないようにすることで
+# サーバを落とさずにCHECK TABLE 文を利用してテーブルをチェックすることが出来ます。
+skip-external-locking
+
+# データベースを複数のディスクに分けたい場合に利用するが、
+# セキュリティ上、利用しないほうがいい。
+symbolic-links=0
+
+# クライアントとの送受信で利用できるデータサイズ（パケットサイズ）
+# SQL長の制限サイズでもある。
+# とりあえず大きい値に設定しておくといい。
+max_allowed_packet = 16M
+
+# テーブルフルスキャン時に利用されるメモリ
+# デフォルトで十分だが、テーブルから読み込むレコード数が多い場合は 512KB まで増やすといい。
+# read_buffer_size = 512KB
+
+# インデックスを利用したソート時に利用するメモリ
+# デフォルトで十分だが、テーブルから読み込むレコード数が多い場合は 256KB ~ 1MB まで増やすといい。
+# read_rnd_buffer_size = 1M
+
+# インデックスを利用せずにJOINする際に利用されるメモリ
+# 増やすとインデックスの効いていないクエリは高速化されるが、
+# そもそもインデックスを効かすべきなので基本デフォルトでOK
+# join_buffer_size = 256KB
+
+# テンポラリテーブルの最大サイズ
+# これに収まらないとMyISAMとしてテーブルを作成するので、複雑な処理の場合は増やすべき。
+# とはいえ、デフォルトが16MBくらいなので問題ないはず。
+# max_heap_table_size はMEMORYストレージエンジンのテーブルサイズなので、これも同じ値に設定しないといけない。
+# tmp_table_size = 16MB
+# max_heap_table_size = 16MB
+
+# MyISAMでのみ使用
+# インデックスのキャッシュサイズ
+# システムで利用するメモリの30%以内で設定する。
+# key_buffer_size = 256M
+
+# MyISAMでのみ使用
+# デフォルトで十分
+# myisam_sort_buffer_size = 64M
+
+# いずれ廃止されるパラメータなので設定不要
+# thread_concurrency = 8
+
+# Bツリーインデックスのルックアップを高速にする。
+# デフォルトでONになっている
+# innodb_adaptive_hash_index
+
+# AUTO INCREMENT のロック方式を設定する。
+# 0 ... 各ステートメントが終了するまでテーブル・ロック。
+# 1 ... INSERT + SELECT などの大量のデータを挿入する場合のみステートメントが完了するまでロックする。
+# 　　　これによってバイナリログの整合性を保てる。
+# 2 ... 全てのステートメントに対して AUTO INCREMENT を取得次第、ロックを開放する。
+# 　　　高速だが、binlog_format が ROW になる。
+# 　　　5.7 からデフォルトの設定。
+# innodb_autoinc_lock_mode = 1
+
+# ログをフラッシュするまで貯めておくバッファ。
+# 20MB程度で十分。
+innodb_log_buffer_size = 20M
+
+# トランザクションのコミット時にInnoDBログファイルがディスクへ同期されるかどうか。
+# 0 ... コミット時には何もせず、1秒毎にログファイルへの書き込みとディスクへのフラッシュが行われる。
+# 1 ... コミット毎に同期する。デフォルト。
+# 2 ... コミット毎にログファイルへ書き出すが、ディスクへのフラッシュは1秒ごと。
+# 0 or 2 は高速だが、コミット時のデータが失われる可能性があるので、
+# マスターでは1でスレーブでは 0 or 2 にするといい。
+# innodb_flush_log_at_trx_commit = 1
+
+# ロック待ちの秒数
+# そもそもアプリケーション側でロックしないように作るべきなので、デフォルトでいい。
+innodb_lock_wait_timeout = 50
+
+# ログファイルのグループ数を指定する。
+# デフォルト値で問題ない。
+# innodb_log_files_in_group = 2
+
+# データファイルをテーブル別で管理して、ファイルは1GBで用意 + 自動拡張する。
+# ローカル環境であれば10M程度でいいと思う。
+# データファイルを1つにまとめた方がパフォーマンスは向上する。
+innodb_file_per_table
+#innodb_data_file_path=ibdata1:1G:autoextend
+innodb_data_file_path=ibdata1:10M:autoextend
+
+# データファイルとログをディスクに同期する方式を指定する。
+# O_SYNC と O_DIRECT があるが、O_DIRECTがオススメ。
+innodb_flush_method = O_DIRECT
+
+# クラッシュ時にデータを復旧させる専用オプション
+# 通常時はOFFにしないと正常に動作しない。
+# innodb_force_recovery = 1
+
+# バイナリログの最大ファイルサイズ。
+# このサイズに達した時にローテーションされる。
+# 最大値がデフォルトなので設定は不要。
+# max_binlog_size = 1G
+
+# 一般クエリログを有効にする。
+# 大量のログが出力されるので基本OFFにする。
+# general_log
+
+# レプリケーション時にマスターからの応答がない場合に待つ秒数
+# デフォルトだと3600秒なので短くした方がいい。
+slave-net-timeout = 10
+
+# 接続してからのコネクション維持秒数
+# 接続してから設定秒数が経過すると接続が切れてしまう。
+# 接続するとSQL実行中でもプログラム中に sleep() でも接続が切れるので
+# 変に短くするとバッチの実行中に支障が出たりする。
+# デフォルトの8時間 or バッチがあるならもっと長くてもいいと思う。
+# wait_timeout = 180
+
+
+#####################################
+# 高度なパラメータ
+#####################################
+
+# スレッドが処理を開始してから他のスレッドに権利を譲るまでに実行できる処理回数。
+# デフォルは500回だが、ここもシステムによって適正値が変わる。
+# 値を増やす ... 1つのスレッドがたくさん処理できるので、そのスレッドの処理効率が上がる。
+# 値を減らす ... 処理する権利が回ってくる回数が多くなるので、並列性が上がる。
+# innodb_concurrency_tickets = 500
+
+# ロックを獲得するためにスピンする回数。
+# デフォルトは20回。
+# InnoDBはロックを獲得するためにスピンロックを使い、
+# 獲得出来なかった場合は innodb_sync_spin_loops で指定した回数だけ再試行する。
+# それでもダメだった場合は負荷は高いが、確実性のあるOSレベルのロック獲得処理を実行する。
+# スピンロックを何回で諦めるかで応答時間が決まってくるので、
+# システム毎にチューニングする。
+# innodb_sync_spin_loops = 20
+
+# キューに入る前のスリープ時間を指定する。
+# デフォルトは10000μ秒。（100万分の1秒）
+# 並列性を高めたいときには大きくし、応答性を高めたい時は小さくする。
+# システム毎にチューニングする。
+# innodb_thread_sleep_delay
+
+# 同時にコミットするスレッド数。
+# デフォルトは0で無制限になっている。
+# I/Oがボトルネックになっている場合はスラッシングを防ぐために、
+# innodb_thread_concurrencyより小さい値を指定しておく。
+# innodb_commit_currency = 0
+
+# LinuxのHugeTLBを有効にすることでTLBキャッシュ率を向上させる。
+# Linuxのみ利用可能でHugeTLBを有効にしておく必要がある。
+# large_pages
+
+# ディスクへのデータ反映を非同期にする。
+# inserts ... insertのみ有効にする。（MySQL5.1と同じ機能）
+# none ... 無効
+# all ... insert, delete, update に対して有効にする。
+innodb_change_buffering = all
+
+# 5.7からデフォルトで Barracuda になった。
+# 圧縮するとデータサイズが半分程度にはなるが、参照時に展開が必要になるのでCPU負荷は高くなる。
+# 圧縮設定時には innodb_file_per_table = 1 に設定する必要がある。
+# innodb_file_format = Barracuda
+
+# 読み取り、書き込み時のI/Oスレッド数。
+# デフォルトは双方とも8。
+# レイテンシの大きいNASなどのディスクやI/O帯域（通信速度）が広い場合は値を増やすと高速化する。
+# ベンチマークを取らないとどうしようもない。
+# innodb_read_io_threads = 8
+# innodb_write_io_thread = 8
+
+# InnoDBが1秒間に実行するI/Oの回数。
+# デフォルトは200。
+# 高速なディスクを利用している場合は値を増やす。
+# SSDだと1000以上を設定することもある。
+# 高くしすぎると完了していないI/Oが多くなり、応答速度が低下する。
+# innodb_io_capacity = 1000
+
+# デフォルトで有効になっている。
+# performance_schema
+
+
+[mysqld_safe]
+pid-file = /var/run/mysqld/mysqld.pid
+
+# debian
+socket = /var/run/mysqld/mysqld.sock
+
+# centos
+#socket = /var/lib/mysql/mysql.sock
+nice = 0
+
+
+[client]
+port        = 3306
+
+# debian
+socket      = /var/run/mysqld/mysqld.sock
+
+# centos
+# socket      = /var/lib/mysql/mysql.sock
+
+default-character-set=utf8
