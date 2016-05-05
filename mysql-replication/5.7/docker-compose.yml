@@ -1,17 +1,15 @@
 
 mysql-master:
-    container_name: master
-    image: mysql:5.7
-    ports: 
-        - "3306:3306"
-    volumes_from: 
-        - dvc
+    container_name: mysql-master
+    image: pospome/mysql-master:1.0
     environment: 
-        - MYSQL_ROOT_PASSWORD: pass
+        MYSQL_ROOT_PASSWORD: master
 
-dvc:
-    container_name: dvc
-    image: busybox
-    volumes: 
-        - /root/share
-    command: [/bin/sh]
+mysql-slave:
+    container_name: mysql-slave
+    image: pospome/mysql-slave:1.0
+    links:
+        - mysql-master
+    environment:
+        MYSQL_ROOT_PASSWORD: slave
+        REPLICATION_USER_PASSWORD: replication
