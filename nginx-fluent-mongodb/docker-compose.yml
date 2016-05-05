@@ -16,8 +16,6 @@ fluent:
     image: pospome/fluent-nginx-log-to-mongodb:1.0
     links:
         - mongodb
-    ports: 
-        - "24224:24224"
     volumes_from: 
         - dvc
     volumes:
@@ -26,8 +24,6 @@ fluent:
 mongodb:
     container_name: mongodb
     image: pospome/mongodb:1.0
-    ports: 
-        - "27017:27017"
     volumes_from: 
         - dvc
     volumes:
