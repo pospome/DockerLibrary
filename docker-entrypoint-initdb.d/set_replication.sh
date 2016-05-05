@@ -1,5 +1,7 @@
 #!bin/sh
 
+sleep 10s
+
 # to master
 mysqldump -u root -h $MYSQL_MASTER_PORT_3306_TCP_ADDR -p$MYSQL_MASTER_ENV_MYSQL_ROOT_PASSWORD --all-databases --single-transaction --triggers --routines --events > /tmp/master_dump.sql
 
