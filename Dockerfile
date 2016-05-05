@@ -1,5 +1,6 @@
-FROM pospome/mysql-master:1.0
+FROM mysql:5.7
 
+COPY conf.d /etc/mysql/conf.d
 COPY docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
 
-ENV REPLICATION_USER_PASSWORD=replication_pass MYSQL_ROOT_PASSWORD=slave
+ENV MYSQL_ROOT_PASSWORD=slave REPLICATION_USER_PASSWORD=replication_pass
