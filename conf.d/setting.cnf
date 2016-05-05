@@ -120,9 +120,13 @@ log_queries_not_using_indexes
 user=mysql
 pid-file = /var/run/mysqld/mysqld.pid
 port        = 3306
+
 # debian
-#socket = /var/run/mysqld/mysqld.sock
-socket      = /var/lib/mysql/mysql.sock
+socket = /var/run/mysqld/mysqld.sock
+
+# centos
+#socket      = /var/lib/mysql/mysql.sock
+
 datadir = /var/lib/mysql
 basedir = /usr
 tmpdir = /tmp
@@ -359,15 +363,22 @@ innodb_change_buffering = all
 
 [mysqld_safe]
 pid-file = /var/run/mysqld/mysqld.pid
+
 # debian
-#socket = /var/run/mysqld/mysqld.sock
-socket = /var/lib/mysql/mysql.sock
+socket = /var/run/mysqld/mysqld.sock
+
+# centos
+#socket = /var/lib/mysql/mysql.sock
 nice = 0
 
 
 [client]
 port        = 3306
+
 # debian
-#socket      = /var/run/mysqld/mysqld.sock
-socket      = /var/lib/mysql/mysql.sock
+socket      = /var/run/mysqld/mysqld.sock
+
+# centos
+# socket      = /var/lib/mysql/mysql.sock
+
 default-character-set=utf8
