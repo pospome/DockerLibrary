@@ -1,0 +1,10 @@
+PORT="11211"
+USER="memcached"
+MAXCONN="1024"
+
+# キャッシュメモリの容量（MB）
+# 最大でも 4096MB（4GB）しか設定できない。
+CACHESIZE="64"
+
+# 起動時のオプション
+OPTIONS=""
